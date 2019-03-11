@@ -2,17 +2,25 @@
 // jshint multistr: true
 
 class user {
-    constructor(name, password, online) {
+    constructor(name, passwordHash, online) {
         this.name = name;
-        this.passwordHash = password.hashCode();
+        this.passwordHash = passwordHash;
         this.online = online;
         this.challenge = null;
     }
 }
 
+// a player is a user who is online
+class player {
+    constructor(username, listItem) {
+        this.username = username;
+        this.listItem = listItem;
+    }
+}
+
 // finding online players to start a game
 $(document).ready(() => {
-    var localUser = getUsername();
+    var localPlayer = '';
     // Initialize Firebase
     var config = {
         apiKey: "AIzaSyA-L4Thkk-pasRw4x6yMHdZFIY9Z7h2l3k",
@@ -29,55 +37,64 @@ $(document).ready(() => {
     var userRef = onlineUsersRef.push();
 
     // populate users list
-    var users = [];
-    usersRef.on("value", (snapshot) => {
-        var newUser = snapshot.val();
+    var users = []; // list<user>
+    usersRef.on("child_added", (child) => {
+        var newUser = child.val();        
         console.log("User added: ", newUser);
         if (newUser) users[newUser.name] = new user(newUser.name, newUser.passwordHash);
     });
 
-    // discoveronline users
-    var onlinePlayers = [];
+    // discover online players
+    var onlinePlayers = []; // list<player>
     onlineUsersRef.on("child_added", function(child) {
-        console.log("# of online users = " + snap.numChildren());
-        $("#onlinePlayers").empty();
-        for (var user in snap.val()){
-            if (snap.val().hasOwnProperty(user)) {
-                // add to online users list
-                var listItem = $("<li>");
-                if (snap.val()[user] == localUser) {
-                    // local player (you)
-                    listItem.text(localUser + " (you)");
-                } 
-                else {
-                    // remote player (add button to issue challenge)
-                    listItem.append($("<button>").text(snap.val()[user]).addClass("challengeButton").attr("data-opponent", snap.val()[user]));
-                }
-                // append item to list
-                $("#onlinePlayers").append(listItem);
-            }
-        }        
-    }); 
+        var name = child.val();
+        console.log("user online: ", name);
+        console.log("# of online users = " + onlinePlayers.length);
+        // append to list and show html
+        onlinePlayers[name] = new player(name, showOnlinePlayer(child.name));
+    });
+    // remove players from the list when they leave
+    onlineUsersRef.on("child_removed", (child => {
+        var name = child.val();
+        // delete html
+        onlinePlayers[name].listItem.remove();
+        // delete list reference
+        delete onlinePlayers[name];
+    }));
+
+    function showOnlinePlayer(player) {
+        var listItem = $("<li>");
+        if (player == localPlayer) {
+            // local player (you)
+            listItem.text(localPlayer + " (you)");
+        } 
+        else {
+            // remote player (add button to issue challenge)
+            listItem.append($("<button>").text(player).addClass("challengeButton").attr("data-opponent", snap.val()[player]));
+        }
+        $("#onlinePlayers").append(listItem);
+        return listItem;
+    }
 
     // get username input
     $("#loginForm").submit ((event) => {
         event.preventDefault();
         // is this an existing user?
-        localUser = $("#usernameInput").val();
+        localPlayer = $("#usernameInput").val();
         var password = $("#passwordInput").val();
-        if (users[localUser] == null) {
+        if (users[localPlayer] == null) {
             // this user does not currently exist
-            if (!confirm('User "' + localUser + '" does not yet exist.  Create new?')) {
+            if (!confirm('User "' + localPlayer + '" does not yet exist.  Create new?')) {
                 // cancel; they probably just misspelled their username
                 return;
             }
             // create new user in database
             // look at this amazing security.  wow.  ==>
-            usersRef.push({name: localUser, passwordHash: password.hashCode()});
+            usersRef.push({name: localPlayer, passwordHash: password.hashCode()});
         }
         else {
             // user does exist.  check password.
-            if (users[localUser].passwordHash != password.hashCode()) {
+            if (users[localPlayer].passwordHash != password.hashCode()) {
                 // login failed.
                 alert ("That password is incorrect.");
                 // clear wrong password
@@ -102,7 +119,7 @@ $(document).ready(() => {
             // remove ourselves when we disconnect
             userRef.onDisconnect().remove();
             // set reference to current user
-            userRef.set(localUser);
+            userRef.set(localPlayer);
         }
         });
     });
@@ -148,7 +165,3 @@ $(document).ready(() => {
     //     // ...
     // });
 });
-
-function getUsername() {
-    return "bob";
-}
