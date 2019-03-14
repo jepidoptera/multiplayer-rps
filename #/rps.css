@@ -1,6 +1,7 @@
-body {
+html, body {
     text-align: center;
     font-size: 14pt;
+    overflow: hidden;
 }
 
 #rockButton {
@@ -26,9 +27,8 @@ body {
     top: 300px;
     transform: translate(-50%);
     width: 540px;
-    height: Calc(100% - 300px);
+    height: Calc(100% - 310px);
     border: 1px solid black;
-    bottom: 0;
     text-align: left;
 }
 

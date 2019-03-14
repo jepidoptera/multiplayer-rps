@@ -124,7 +124,10 @@ $(document).ready(() => {
                     // join the game created by opponent
                     firebase.database().ref('online/' + localPlayerRef.key + '/game').set(
                         child.val().game);
-                    openGameWindow(activeGame.gameName, child.val().game.id, localPlayerRef.key, child.key);
+                    msgBox('new game', child.val().name + " has accepted your challenge!", 
+                    dialogButtons([{text: 'ok', function: () =>
+                        openGameWindow(activeGame.gameName, child.val().game.id, localPlayerRef.key, child.key)
+                    }]));
                 }
                 // else: did they delete the challenge?
                 else if (!child.val().challenge) {
