@@ -5,32 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Multiplayer RPS</title>
-    <!-- jQuery -->
+    <!-- firebase -->
     <script src="https://www.gstatic.com/firebasejs/5.0.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/5.0.0/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/5.0.0/firebase-auth.js"></script>
-    <!-- <script src="https://www.gstatic.com/firebasejs/5.8.6/firebase.js"></script> -->
-    <script src="https://code.jquery.com/jquery.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+    integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script>
+    <!-- my stuff -->
     <script src='scripts/simpleHash.js'></script>
+    <script src="scripts/dialog.js"></script>
     <script src='scripts/lobby.js'></script>
 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <form id="loginForm" action="">
-        Please enter your username and password: 
-        <br><input id="usernameInput" type="text">
-        <br><input id="passwordInput" type="password">
-        <br><input type="submit">
+        <br>
+        <h4>Please log in to:</h4> <br> Pete's incredible MVP game lobby!
+        <br>
+        <br>Username: <input id="usernameInput" type="text">
+        <br>Password: <input id="passwordInput" type="password">
+        <br><br><input type="submit">
     </form>
     <div id="lobbyDiv">
         Online Players
         <ul id='onlinePlayers'>
             <!-- online players will appear in this list -->
         </ul>
+        <div id='instructions'>
         Click another player's username to issue a game challenge!
+        </div>
     </div>
 </body>
 </html>

@@ -1,0 +1,7 @@
+#lobbyDiv {
+    display: none;
+}
+
+#loginForm, #lobbyDiv {
+    text-align: center;
+}

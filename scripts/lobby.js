@@ -2,25 +2,43 @@
 // jshint multistr: true
 
 class user {
-    constructor(name, passwordHash, online) {
+    constructor(name, passwordHash) {
         this.name = name;
         this.passwordHash = passwordHash;
-        this.online = online;
-        this.challenge = null;
     }
 }
 
-// a player is a user who is online
+// a player is a user who is online and available
 class player {
-    constructor(username, listItem) {
+    constructor(username, listItem, key) {
         this.username = username;
         this.listItem = listItem;
+        // database key: lj1413325 or some such
+        this.key = key;
+        this.challenge = null;
+        this.game = null;
     }
 }
 
-// finding online players to start a game
+class gameRef {
+    constructor(player1, player2, gameName) {
+        this.player1 = player1;
+        this.player2 = player2;
+        // in other words
+        this.challenger = player2;
+        this.recipient = player1;
+        this.gameName = gameName;
+    }
+}
+
+// a few global variables - maintained by this script, available to others
+var localPlayerID = '';
+var users = []; // usuers['bob'] = user{name: 'bob', passwordHash: 12454357}
+var onlinePlayers = [];
+var activeChallenge;
+var activeGame;
+
 $(document).ready(() => {
-    var localPlayer = '';
     // Initialize Firebase
     var config = {
         apiKey: "AIzaSyA-L4Thkk-pasRw4x6yMHdZFIY9Z7h2l3k",
@@ -33,68 +51,176 @@ $(document).ready(() => {
     firebase.initializeApp(config);
 
     var usersRef = firebase.database().ref("/users");
-    var onlineUsersRef = firebase.database().ref("/online");
-    var userRef = onlineUsersRef.push();
+    var onlinePlayersRef = firebase.database().ref("/online");
+    var localPlayerRef = onlinePlayersRef.push();
+    var gamesRef = firebase.database().ref('games');
 
     // populate users list
-    var users = []; // list<user>
     usersRef.on("child_added", (child) => {
         var newUser = child.val();        
-        console.log("User added: ", newUser);
+        console.log("User in database: ", newUser);
         if (newUser) users[newUser.name] = new user(newUser.name, newUser.passwordHash);
     });
+    // they generally won't be removed
 
     // discover online players
-    var onlinePlayers = []; // list<player>
-    onlineUsersRef.on("child_added", function(child) {
-        var name = child.val();
-        console.log("user online: ", name);
-        console.log("# of online users = " + onlinePlayers.length);
-        // append to list and show html
-        onlinePlayers[name] = new player(name, showOnlinePlayer(child.name));
+    onlinePlayersRef.on("child_added", function(child) {
+        if (child.val().name) addOnlinePlayer(child.val(), child.key);
     });
     // remove players from the list when they leave
-    onlineUsersRef.on("child_removed", (child => {
-        var name = child.val();
+    onlinePlayersRef.on("child_removed", child => {
+        removeOnlinePlayer(child.val());
+    });
+    // add/remove players when their status changes (if they join or leave a game)
+    onlinePlayersRef.on("child_changed", child => {
+        // keep local list up to date
+        updateOnlinePlayer(child.val());
+        // add/remove/detect events
+        if (child.val().busy) {
+            removeOnlinePlayer(child.val());
+        }
+        else {
+            addOnlinePlayer(child.val(), child.key);
+        }
+        // detect challenge/ response
+        if (child.val().name == localPlayerID) {
+            var challenge = child.val().challenge;
+            var game = child.val().game;
+            if (challenge != null && game == null) {
+                // show challenge dialog
+                msgBox("New Challenge", challenge.challenger + " has challenged you to a game of " + 
+                {'rps': 'rock-paper-scissors', 'ttt': 'tic-tac-toe'}[challenge.gameName] + ".", 
+                dialogButtons([{
+                    text: "accept",
+                    function: () => {
+                        // challenged player goes first
+                        challenge.turn = localPlayerID;
+                        // promote 'challenge' to 'game'
+                        var newgame = firebase.database().ref('games').push(challenge);
+                        firebase.database().ref('/online/' + onlinePlayers[localPlayerID].key + '/game').set({id: newgame.key, move: null});
+                        // delete challenge
+                        firebase.database().ref('/online/' + onlinePlayers[localPlayerID].key + '/challenge').remove();
+                        // game doesn't persist after disconnect
+                        newgame.onDisconnect().remove();
+                        // open game window
+                        openGameWindow(challenge.gameName, newgame.key, localPlayerRef.key, onlinePlayers[challenge.challenger].key);
+                    }},{
+                    text: "decline",
+                    function: () => {
+                        // delete challenge
+                        firebase.database().ref('/online/' + onlinePlayers[localPlayerID].key + '/challenge').remove();
+                    }
+                }]));
+            }
+        }
+        else if (activeChallenge) {
+            // see if opponent responded
+            if (child.val().name == activeChallenge.player1) {
+                // did they add a game field? that means they joined the game
+                if (child.val().game) {
+                    // challenge accepted!s
+                    activeGame = activeChallenge;
+                    activeChallenge = null;
+                    // join the game created by opponent
+                    firebase.database().ref('online/' + localPlayerRef.key + '/game').set(
+                        child.val().game);
+                    openGameWindow(activeGame.gameName, child.val().game.id, localPlayerRef.key, child.key);
+                }
+                // else: did they delete the challenge?
+                else if (!child.val().challenge) {
+                    // yup. whomp whomp
+                    $("#instructions").html('<span style="color:red">' + activeChallenge.player1 + ' declined your challenge.</span>')
+                    setTimeout(() => {
+                        $("#instructions").html("Click another player's username to issue a game challenge!");
+                    }, 10000);
+                }
+            }
+        }
+    });
+    function addOnlinePlayer(player, key) {
+        if (onlinePlayers[player.name]) return;
+        player.key = key;
+        player.listItem = showOnlinePlayer(player.name);
+        console.log("user online: ", player.name);
+        // append to list and show html
+        onlinePlayers[player.name] = player;
+    }
+    function removeOnlinePlayer(player) {
+        console.log("user offline: ", player.name);
         // delete html
-        onlinePlayers[name].listItem.remove();
+        onlinePlayers[player.name].listItem.remove();
         // delete list reference
-        delete onlinePlayers[name];
-    }));
-
-    function showOnlinePlayer(player) {
+        delete onlinePlayers[player.name];
+    }
+    function updateOnlinePlayer(player) {
+        onlinePlayers[player.name].game = player.game;
+        onlinePlayers[player.name].challenge = player.challenge;
+        onlinePlayers[player.name].busy = player.busy;
+    }
+    // html list of online players
+    function showOnlinePlayer(name) {
         var listItem = $("<li>");
-        if (player == localPlayer) {
+        if (name == localPlayerID) {
             // local player (you)
-            listItem.text(localPlayer + " (you)");
+            listItem.text(name + " (you)");
         } 
         else {
             // remote player (add button to issue challenge)
-            listItem.append($("<button>").text(player).addClass("challengeButton").attr("data-opponent", snap.val()[player]));
+            listItem.append($("<button>")
+                .text(name)
+                .addClass("challengeButton")
+                .attr("data-opponent", name))
+                .click(() => {
+                    challengePlayer(name);
+                });
         }
         $("#onlinePlayers").append(listItem);
+        // return the item so it can be removed when they leave
         return listItem;
     }
+    function openGameWindow (gameName, gameID, localPlayerID, opponentID) {
+        // reset instructions
+        $("#instructions").html("Click another player's username to issue a game challenge!");
+        // construct url parameters and open a tab
+        var win = window.open(gameName + '.html?' +
+        'gameID=' + gameID + 
+        '&localPlayer=' + localPlayerID + 
+        '&opponent=' + opponentID, '_blank');
+        // switch to the new tab
+        win.focus();
+    }
+
+    // keep track of games (remove when game closed)
+    gamesRef.on('child_removed', (child) => {
+        if (child.key == onlinePlayers[localPlayerID].game.id) {
+            // game was deleted, so delete reference to it
+            firebase.database().ref('online/' + localPlayerRef.key + '/game').remove();
+        }
+    });
 
     // get username input
     $("#loginForm").submit ((event) => {
         event.preventDefault();
         // is this an existing user?
-        localPlayer = $("#usernameInput").val();
+        localPlayerID = $("#usernameInput").val();
         var password = $("#passwordInput").val();
-        if (users[localPlayer] == null) {
+        if (users[localPlayerID] == null) {
             // this user does not currently exist
-            if (!confirm('User "' + localPlayer + '" does not yet exist.  Create new?')) {
+            if (password.length < 6) {
+                alert ("You're gonna need a better password.  6 character min.");
+                return;
+            }
+            if (!confirm('User "' + localPlayerID + '" does not yet exist.  Create new?')) {
                 // cancel; they probably just misspelled their username
                 return;
             }
             // create new user in database
             // look at this amazing security.  wow.  ==>
-            usersRef.push({name: localPlayer, passwordHash: password.hashCode()});
+            usersRef.push({name: localPlayerID, passwordHash: password.hashCode()});
         }
         else {
             // user does exist.  check password.
-            if (users[localPlayer].passwordHash != password.hashCode()) {
+            if (users[localPlayerID].passwordHash != password.hashCode()) {
                 // login failed.
                 alert ("That password is incorrect.");
                 // clear wrong password
@@ -102,7 +228,11 @@ $(document).ready(() => {
                 return;
             }
             // check if they're already logged in
-            if (users) {}
+            if (onlinePlayers[localPlayerID] != undefined) {
+                // can't log in twice!
+                alert ("You are already logged in somewhere else.");
+                return;
+            }
             // otherwise, we're logged in now
         }
         
@@ -117,12 +247,27 @@ $(document).ready(() => {
         connectionRef.on("value", function(snap) {
         if (snap.val()) {
             // remove ourselves when we disconnect
-            userRef.onDisconnect().remove();
+            localPlayerRef.onDisconnect().remove();
             // set reference to current user
-            userRef.set(localPlayer);
+            localPlayerRef.set({name: localPlayerID, busy: false});
         }
         });
     });
+
+    // issuing a challenge
+    function challengePlayer (opponent) {
+        // localPlayer vs opponent @ whatever game they choose here
+        msgBox("Select Game", "Please choose a game:", dialogButtons(
+            [{text: "rock-paper-scissors", function: () => issueChallenge(opponent, "rps")},
+            {text: "tic-tac-toe", function: () => issueChallenge(opponent, "ttt")}]
+        ));
+    }
+    function issueChallenge (opponent, gameName) {
+        activeChallenge = new gameRef(opponent, localPlayerID, gameName);
+        firebase.database().ref('/online/' + onlinePlayers[opponent].key + "/challenge")
+        .set(activeChallenge);
+        $("#instructions").text("waiting for " + opponent + " to respond to your challenge.");
+    }
 
     // firebase.auth().signInAnonymously().catch(function(error) {
     //     // Handle Errors here.
