@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <!-- scripts -->
+    <script src="https://www.gstatic.com/firebasejs/5.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.0.0/firebase-database.js"></script>
+    <link rel="stylesheet" href="css/rps.css">
+    <script src="scripts/tictactoe.js"></script>
+    <!-- favicon -->
+    <link rel="icon" type="icon" href="icons/splash.ico">
+</head>
+<body>
+    <h2 id="title"></h2>
+    <div id="buttons"> 
+        Choose your weapon:
+        <button id='rockButton' onclick='move("rock")'>rock</button>
+        <button id='paperButton' onclick='move("paper")'>paper</button>
+        <button id='scissorsButton' onclick='move("scissors")'>scissors</button>
+    </div>
+    <p id="verbs"></p>
+    <p id="winner"></p>
+    <p id="score"></p>
+    <div id="chatWindow">
+        <p id="chatContent"></p>
+        <form action="" id="chatEnter">
+            <input type="text" id="chatInput">
+            <button type="submit" id="chatSubmit">Chat</button>
+        </form>
+    </div>
+</body>
+</html>

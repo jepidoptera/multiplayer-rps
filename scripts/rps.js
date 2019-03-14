@@ -25,6 +25,7 @@ var options = [
     "scissors"
 ];
 
+// extra-large in case I decide to go for lizard-spock
 var winMatrix = [
     [-1, 1, 0, 1, 0],
     [0, -1, 1, 0, 1],
@@ -32,12 +33,6 @@ var winMatrix = [
     [0, 1, 0, -1, 1],
     [1, 0, 1, 0, -1]
 ];
-
-var descriptions = [
-    "rock", "smashes", "scissors", "cuts", "paper",
-    "disproves", "Spock", "breaks", "scissors", "slices", 
-    "lizard", "poisons", "Spock", "vaporizes", "rock", 
-    "crushes", "lizard", "eats", "paper", "covers", "rock"];
 
 var score = [0, 0, 0];
 
@@ -189,6 +184,9 @@ function resolve() {
     setTimeout(() => {
         document.getElementById("buttons").style.display = 'inline';
         document.getElementById("winner").style.display = 'none';
+        document.getElementById("verbs").textContent = "";
+        document.getElementById("winner").textContent = "";
+
     }, 3000);
 }
 

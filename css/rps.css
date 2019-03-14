@@ -26,14 +26,24 @@ body {
     top: 300px;
     transform: translate(-50%);
     width: 540px;
-    height: 400px;
+    height: Calc(100% - 300px);
     border: 1px solid black;
     bottom: 0;
     text-align: left;
 }
 
+#chatEnter {
+    position: absolute;
+    bottom: 0;
+    font-size: 14pt;
+}
+
 #chatInput {
-    width: 475px;
+    width: 468px;
+}
+
+#chatInput, #chatSubmit {
+    font-size: 14pt;
 }
 
 #chatContent {
@@ -41,6 +51,5 @@ body {
     position: relative;
     width: 100%;
     top: 0;
-    height: Calc(100% - 30px);
     overflow: scroll;
 }

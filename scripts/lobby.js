@@ -259,7 +259,8 @@ $(document).ready(() => {
         // localPlayer vs opponent @ whatever game they choose here
         msgBox("Select Game", "Please choose a game:", dialogButtons(
             [{text: "rock-paper-scissors", function: () => issueChallenge(opponent, "rps")},
-            {text: "tic-tac-toe", function: () => issueChallenge(opponent, "ttt")}]
+            {text: "tic-tac-toe", function: () => issueChallenge(opponent, "ttt")},
+            {text: "cancel", function: null}]
         ));
     }
     function issueChallenge (opponent, gameName) {

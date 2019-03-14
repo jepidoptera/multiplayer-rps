@@ -5,3 +5,8 @@
 #loginForm, #lobbyDiv {
     text-align: center;
 }
+
+#onlinePlayers {
+    width: 200px;
+    display: inline-block;
+}
