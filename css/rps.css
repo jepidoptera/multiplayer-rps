@@ -1,0 +1,21 @@
+html, body {
+    text-align: center;
+    font-size: 14pt;
+    overflow: hidden;
+}
+
+#rockButton {
+    color: white;
+    background-color: rgb(48, 48, 48);
+}
+
+#paperButton {
+    color: black;
+    background-color: white;
+}
+
+#scissorsButton {
+    color: black;
+    background-color: rgb(128, 128, 128);
+    border: 2px dashed black;
+}

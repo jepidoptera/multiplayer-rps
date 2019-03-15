@@ -124,6 +124,8 @@ $(document).ready(() => {
                     // join the game created by opponent
                     firebase.database().ref('online/' + localPlayerRef.key + '/game').set(
                         child.val().game);
+                    // after showing a dialog and having them click on it, that is
+                    // or the pop-up will be blocked
                     msgBox('new game', child.val().name + " has accepted your challenge!", 
                     dialogButtons([{text: 'ok', function: () =>
                         openGameWindow(activeGame.gameName, child.val().game.id, localPlayerRef.key, child.key)

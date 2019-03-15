@@ -1,22 +1,6 @@
 // jshint esversion: 6
-function getUrlParameter(name) {
-    name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
-    var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
-    var results = regex.exec(location.search);
-    return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
-}
-var gameID;
-var localPlayer = "";
-var localPlayerID;
-var opponent = "";
-var opponentID;
 var opponentMove;
-var opponentMoveRef;
-var opponentChatRef;
 var yourMove;
-var yourMoveRef;
-var yourChatRef;
-var gameRef;
 var gameover;
 
 var options = [
@@ -36,128 +20,46 @@ var winMatrix = [
 
 var score = [0, 0, 0];
 
-window.onload = () => {
-    // parse url parameters
-    gameID = getUrlParameter('gameID');
-    localPlayerID = getUrlParameter('localPlayer');
-    opponentID = getUrlParameter('opponent');
-
-    // Initialize Firebase
-    var config = {
-        apiKey: "AIzaSyA-L4Thkk-pasRw4x6yMHdZFIY9Z7h2l3k",
-        authDomain: "multiplayer-rps-ac8da.firebaseapp.com",
-        databaseURL: "https://multiplayer-rps-ac8da.firebaseio.com",
-        projectId: "multiplayer-rps-ac8da",
-        storageBucket: "multiplayer-rps-ac8da.appspot.com",
-        messagingSenderId: "611363319888"
-    };
-    firebase.initializeApp(config);
-
-    // setup listeners
-    gameRef = firebase.database().ref('games/' + gameID);
-    opponentMoveRef = firebase.database().ref('online/' + opponentID + '/game/move');
-    yourMoveRef = firebase.database().ref('online/' + localPlayerID + '/game/move');
-    opponentChatRef = firebase.database().ref('online/' + opponentID + '/game/chat');
-    yourChatRef = firebase.database().ref('online/' + localPlayerID + '/game/chat');
-
-    // download and show player names
-    firebase.database().ref('online/' + localPlayerID).on('value', (player) => {
-        localPlayer = player.val().name;
-        updateBanner();
-    });
-    firebase.database().ref('online/' + opponentID).on('value', (player) => {
-        opponent = player.val().name;
-        updateBanner();
-    });
-
-    // game ending - people going offline. notice when this happens
-    gameRef.on('child_removed', (child) => {
-        // opponent's window has been closed, probably
-        if (child.key == gameID){
-            alert('opponent has left the game.');
-            gameover = true;
+// called from gameBasics.js when it detects a move via Firebase
+function playMove(player, move) {
+    if (player == 'opponent') {
+        opponentMove = move;
+        if (yourMove) {
+            resolve();
         }
-    });
-    firebase.database().ref('online').on('child_removed', (player) => {
-        if (player.key == localPlayerID || player.key == opponentID) {
-            // one of the players left, and the game is over
-            alert('a player left the game.');
-            gameover = true;
+        else {
+            document.getElementById("verbs").textContent = opponentName + " is waiting for your move.";
         }
-    });
-
-    // delete game when window closes
-    window.onunload = () => {
-        gameRef.remove();
-        window.close();
-    };
-
-    // opponent moves
-    opponentMoveRef.on('value', (value) => {
-        opponentMove = value.val();
-        if (opponentMove != null) {
-            console.log ('opponent moves: ', opponentMove);
-            if (yourMove) {
-                resolve();
-            }
-            else {
-                document.getElementById("verbs").textContent = opponent + " is waiting for your move.";
-            }
-        }
-    });
-
-    // chats (from opponent)
-    opponentChatRef.on('value', (value) => {
-        var chat = value.val();
-        if (chat != null) {
-            if (chatContent.innerHTML != "") chatContent.innerHTML += "<br>";
-            document.getElementById("chatContent").innerHTML += opponent + ": " + chat;
-        }
-    });
-    // submit chat (on your end)
-    document.getElementById("chatEnter").onsubmit = (event) => {
-        event.preventDefault();
-        var chat = document.getElementById('chatInput').value;
-        // clear input field
-        document.getElementById('chatInput').value = "";
-        // send off to server
-        yourChatRef.set(chat);
-        var chatContent = document.getElementById("chatContent");
-        // show
-        console.log(chatContent.innerHTML);
-        if (chatContent.innerHTML != "") chatContent.innerHTML += "<br>";
-        chatContent.innerHTML += localPlayer + ": " + chat;
-        chatContent.scrollTop = chatContent.scrollHeight;
-    };
-};
-
-// your move
-function move(move) {
-    yourMove = move;
-    if (options.indexOf(move) == -1) {
-        console.log ('wtf...');
     }
-    else {
-        console.log('you move: ', move);
-    }
-    // remove buttons / show result
-    document.getElementById("buttons").style.display = 'none';
-    document.getElementById("winner").style.display = 'inline';
-    // upload move
-    if (!gameover) yourMoveRef.set(move);
-    // see who won
-    if (opponentMove) {
-        resolve();
-    }
-    else {
-        document.getElementById("verbs").textContent = "Waiting for " + opponent + "...";
+    else if (player == 'you') {
+        yourMove = move;
+        // upload move
+        // this is the only call back to gameBasics.js which is required (for this game)
+        if (!gameover) gameBasics.uploadMove(yourMove);
+
+        if (options.indexOf(yourMove) == -1) {
+            console.log ('wtf...');
+        }
+        else {
+            console.log('you move: ', yourMove);
+        }
+        // remove buttons / show result
+        document.getElementById("buttons").style.display = 'none';
+        document.getElementById("winner").style.display = 'inline';
+        // see who won
+        if (opponentMove) {
+            resolve();
+        }
+        else {
+            document.getElementById("verbs").textContent = "Waiting for " + opponentName + "...";
+        }
     }
 }
 
 function resolve() {
     // translate words into numbers
     var weapon = [options.indexOf(yourMove), options.indexOf(opponentMove)];
-    var player = [localPlayer, opponent, "tie"];
+    var player = [yourName, opponentName, "tie"];
     switch (winMatrix[weapon[0]][weapon[1]]) {
     case -1:
         // tie
@@ -171,7 +73,7 @@ function resolve() {
     }
     // show moves side by side
     document.getElementById("verbs").innerHTML = 
-    localPlayer + ": " + yourMove + "<br>" + opponent + ": " + opponentMove;      
+    yourName + ": " + yourMove + "<br>" + opponentName + ": " + opponentMove;      
     document.getElementById("winner").textContent = "winner: " + player[winner];  
     // reset moves
     yourMove = null;
@@ -190,8 +92,12 @@ function resolve() {
     }, 3000);
 }
 
-function updateBanner() {
-    document.getElementById("title").textContent = "Our hero, " + localPlayer + ", vs. the dastardly " + opponent + "!";
+function updateTitle() {
+    document.getElementById("title").textContent = "Our hero, " + yourName + ", vs. the dastardly " + opponentName + "!";
+}
+
+function updateTurn() {
+    // nothing to do - but gameBasics expects this function to exist
 }
 
 function updateScores() {

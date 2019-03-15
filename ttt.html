@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <!-- scripts -->
+    <script src="https://www.gstatic.com/firebasejs/5.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.0.0/firebase-database.js"></script>
+    <script src="scripts/gameBasics.js"></script>
+    <script src="scripts/tictactoe.js"></script>
+    <!-- css -->
+    <link rel="stylesheet" href="css/chats.css">
+    <link rel="stylesheet" href="css/tictactoe.css">
+    <!-- favicon -->
+    <link rel="icon" type="icon" href="icons/splash.ico">
+</head>
+<body>
+    <h2 id="title"></h2>
+    <div id="gameWindow">
+        <div id="grid"> 
+            <div class='row'>
+                <div id='topLeft' class='box' index='0'></div>
+                <div id='topCenter' class='box' index='1'></div>
+                <div id='topRight' class='box' index='2'></div>
+            </div>
+            <div class='row'>
+                <div id='centerLeft' class='box' index='3'></div>
+                <div id='centerCenter' class='box' index='4'></div>
+                <div id='centerRight' class='box' index='5'></div>
+            </div>
+            <div class='row'>
+                <div id='bottomLeft' class='box' index='6'></div>
+                <div id='bottomCenter' class='box' index='7'></div>
+                <div id='bottomRight' class='box' index='8'></div>
+            </div>
+        </div>
+        <p id="verbs"></p>
+        <p id="winner"></p>
+        <p id="score"></p>
+    </div>
+    <div id="chatWindow">
+        <p id="chatContent"></p>
+        <form action="" id="chatEnter">
+            <input type="text" id="chatInput">
+            <button type="submit" id="chatSubmit">Chat</button>
+        </form>
+    </div>
+</body>
+</html>

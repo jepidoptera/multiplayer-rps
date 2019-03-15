@@ -8,8 +8,11 @@
     <!-- scripts -->
     <script src="https://www.gstatic.com/firebasejs/5.0.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/5.0.0/firebase-database.js"></script>
-    <link rel="stylesheet" href="css/rps.css">
+    <script src="scripts/gameBasics.js"></script>
     <script src="scripts/rps.js"></script>
+    <!-- css -->
+    <link rel="stylesheet" href="css/chats.css">
+    <link rel="stylesheet" href="css/rps.css">
     <!-- favicon -->
     <link rel="icon" type="icon" href="icons/splash.ico">
 </head>
@@ -17,9 +20,9 @@
     <h2 id="title"></h2>
     <div id="buttons"> 
         Choose your weapon:
-        <button id='rockButton' onclick='move("rock")'>rock</button>
-        <button id='paperButton' onclick='move("paper")'>paper</button>
-        <button id='scissorsButton' onclick='move("scissors")'>scissors</button>
+        <button id='rockButton' onclick='playMove("you", "rock")'>rock</button>
+        <button id='paperButton' onclick='playMove("you", "paper")'>paper</button>
+        <button id='scissorsButton' onclick='playMove("you", "scissors")'>scissors</button>
     </div>
     <p id="verbs"></p>
     <p id="winner"></p>

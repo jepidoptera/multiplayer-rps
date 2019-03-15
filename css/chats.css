@@ -1,25 +1,3 @@
-html, body {
-    text-align: center;
-    font-size: 14pt;
-    overflow: hidden;
-}
-
-#rockButton {
-    color: white;
-    background-color: rgb(48, 48, 48);
-}
-
-#paperButton {
-    color: black;
-    background-color: white;
-}
-
-#scissorsButton {
-    color: black;
-    background-color: rgb(128, 128, 128);
-    border: 2px dashed black;
-}
-
 #chatWindow {
     display: inline-block;
     position: absolute;
@@ -34,7 +12,7 @@ html, body {
 
 #chatEnter {
     position: absolute;
-    bottom: 0;
+    bottom: 5px;
     font-size: 14pt;
 }
 
@@ -50,6 +28,7 @@ html, body {
     margin: 0;
     position: relative;
     width: 100%;
+    height: Calc(100% - 14pt - 6px);
     top: 0;
     overflow: scroll;
 }

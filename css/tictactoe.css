@@ -1,6 +1,13 @@
+html, body {
+    text-align: center;
+}
+
+/* grid */
 #grid {
-    height: 50vh;
-    width: 50vh;
+    height: 40vh;
+    width: 40vh;
+    float: left;
+    margin: 0, 0, 0, 5vh;
 }
 .row {
     width: 100%;
@@ -8,10 +15,12 @@
 }
 .box {
     border: 1px solid black;
-    height: 33.3%;
-    width: 100%;
+    width: 33.3%;
+    height: 100%;
     float: left;
     box-sizing: border-box;
+    text-align: center;
+    font-size: 12vh;
 }
 #topLeft, #topCenter, #topRight {
     border-top: none;
@@ -24,4 +33,20 @@
 }
 #bottomRight, #centerRight, #topRight {
     border-right: none;
+}
+
+#gameWindow {
+    width: 540px;
+    display: inline-block;
+}
+
+#score {
+    display: block;
+    bottom: 0;
+}
+
+/* chat */
+#chatWindow {
+    height: 45vh;
+    top: 54vh;
 }
