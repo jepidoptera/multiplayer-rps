@@ -55,6 +55,8 @@ function resetBoxes () {
 
 function playMove(player, move) {
     if (gameOver) return;
+    // don't allow overwriting another player's move
+    if (document.getElementById(boxNames[move]).textContent != "") return;
 
     console.log(player + " moves at " + move);
     if (player == 'opponent') {
