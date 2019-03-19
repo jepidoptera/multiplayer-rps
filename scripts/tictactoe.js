@@ -62,13 +62,13 @@ function playMove(player, move) {
     if (player == 'opponent') {
         boxes[move] = 'O';
         document.getElementById(boxNames[move]).textContent = 'O';
-        // switch turn
-        gameBasics.nextTurn();
     }
     else if (player == 'you') {
         if (turn != yourName) return;
         boxes[move] = 'X';
         document.getElementById(boxNames[move]).textContent = 'X';
+        // switch turn
+        gameBasics.nextTurn();
         // send move to opponent
         gameBasics.uploadMove(move);
     }
