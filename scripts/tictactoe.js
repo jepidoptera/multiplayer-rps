@@ -39,10 +39,7 @@ window.addEventListener('load', () => {
             playMove('you', box.getAttribute('index'));
         };
     });
-    // crude hack - wait for load to (probably) finish
-    setTimeout(() => {
-        updateTurn();
-    }, 500);
+    updateTurn();
 });
 
 function resetBoxes () {
@@ -56,7 +53,7 @@ function resetBoxes () {
 function playMove(player, move) {
     if (gameOver) return;
     // don't allow overwriting another player's move
-    if (document.getElementById(boxNames[move]).textContent != "") return;
+    if (boxes[move] != null) return;
 
     console.log(player + " moves at " + move);
     if (player == 'opponent') {
@@ -83,13 +80,13 @@ function checkWins() {
         if (boxes[win[0]] == null) return;
         if (boxes[win[0]] == boxes[win[1]] && boxes[win[1]] == boxes[win[2]]) {
             // winner
-            var turnSymbol = document.getElementById(boxNames[win[0]]).textContent;
             winner = (boxes[win[0]] == 'X') ? yourName : opponentName;
             document.getElementById('winner').textContent = "winner: " + winner;
             gameOver = true;
             // make the winning moves blink
-            for (i = 0; i < 3; i++) {
-                var timeout = i * 500;
+            var turnSymbol = document.getElementById(boxNames[win[0]]).textContent;
+            [0, 1, 2].forEach((i) => {
+                var timeout = i * 1000;
                 setTimeout(() => {
                     win.forEach((box) => {
                         document.getElementById(boxNames[box]).textContent = '';
@@ -99,10 +96,10 @@ function checkWins() {
                 setTimeout(() => {
                     win.forEach((box) => {
                         document.getElementById(boxNames[box]).textContent = turnSymbol;
-                        console.log('unblink: ', timeout);
+                        console.log('unblink: ', timeout, "symbol: ", 'turnSymbol');
                     });
                 }, timeout + 500);
-            }
+            });
             setTimeout(() => {
                 gameOver = false;
                 document.getElementById('winner').textContent = '';
